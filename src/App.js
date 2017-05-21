@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
 import _ from 'lodash';
+import update from 'immutability-helper';
 import Field from './Fields';
-import logo from './logo.svg';
+import logo from './two.svg';
 import './App.css';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: null,
+      name: "",
       baseAmt: null,
       bankBalance: 0,
       players: []
@@ -16,19 +17,28 @@ class App extends Component {
     this.addPlayer = this.addPlayer.bind(this);
     this.updateName = this.updateName.bind(this);
     this.onBaseAmtChange = this.onBaseAmtChange.bind(this);
+    this.updatePlayerBalance = this.updatePlayerBalance.bind(this);
+    this.updateSelectedPlayer = this.updateSelectedPlayer.bind(this);
   }
 
-  updateBankBalance() {
+  initializeBankBalance(status, amount) {
     let bankBalance = this.state.players.length * this.state.baseAmt;
     this.setState({ bankBalance });
   }
 
+  updateBankBalance(status, amount) {
+    let bankBalance = this.state.bankBalance;
+    if(amount < this.state.bankBalance) {
+      status === 'profit' ? this.setState({ bankBalance: bankBalance - amount }) : this.setState({ bankBalance: bankBalance + amount })
+    }
+  }
+
   onPlayerCountChange(e) {
-    this.setState({ playerCount: e.target.value }, this.updateBankBalance);
+    this.setState({ playerCount: e.target.value }, this.initializeBankBalance);
   }
 
   onBaseAmtChange(e) {
-    this.setState({ baseAmt: e.target.value}, this.updateBankBalance);
+    this.setState({ baseAmt: e.target.value}, this.initializeBankBalance);
   }
 
   updateName(e) {
@@ -36,16 +46,36 @@ class App extends Component {
   }
 
   updatePlayer() {
-    let players = _.union(this.state.players, [{id: Date.now(), name: this.state.name}]);
-    this.setState({ name: "", players })
+    let players = _.union(this.state.players, [{id: Date.now(), name: this.state.name, amtValue: 0}]);
+    this.setState({ name: "", players }, this.initializeBankBalance);
   }
 
-  updatePlayerBalance(val, index) {
-    console.log('val and index', val, index);
+  updatePlayerBalance(status, index) {
+    let player = _.cloneDeep(this.state.players[index]);
+    let playerAmt = _.get(player, 'amtValue', 0);
+    let playerBalance = _.get(player, 'balance', 0);
+    let newBalance = null;
+    if(playerAmt < this.state.bankBalance) {
+      newBalance = status === 'profit' ? parseInt(playerBalance + playerAmt) : parseInt(playerBalance - playerAmt);
+    }
+    this.setState(update(this.state, {players: {[index]: {balance: {$set: newBalance}, amtValue: {$set: 0}}}}), () => {
+      this.updateBankBalance(status, playerAmt);
+    });
+  }
+
+  updateSelectedPlayer(amount, index) {
+    this.setState(update(this.state, {players: {[index]: {amtValue: {$set: amount}}}}));
   }
 
   addPlayer() {
-    this.setState({ name: this.state.name }, this.updatePlayer);
+    if(!_.isEmpty(this.state.name))
+      this.setState({ name: this.state.name }, this.updatePlayer);
+  }
+
+  handleKeyPress = (event) => {
+    if(event.key === 'Enter'){
+      this.addPlayer();
+    }
   }
 
   render() {
@@ -57,7 +87,7 @@ class App extends Component {
         </div>
         <div>
         <label htmlFor="player-name"> Add a player</label>
-        <input type="text" id="player-name" onChange={this.updateName} />
+        <input type="text" value={this.state.name} id="player-name" onChange={this.updateName} onKeyPress={this.handleKeyPress}/>
         <button onClick={this.addPlayer}> Add </button>
         </div>
         <div>
@@ -65,9 +95,9 @@ class App extends Component {
         <input type="number" id="base-amt" onChange={this.onBaseAmtChange} />
         </div>
         <p>Current Bank balance: {this.state.bankBalance}</p>
-
         <Field players={this.state.players}
-               updatePlayerBalance={this.updatePlayerBalance} />
+               updatePlayerBalance={this.updatePlayerBalance}
+               updateSelectedPlayer={this.updateSelectedPlayer} />
       </div>
     );
   }
