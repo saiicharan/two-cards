@@ -4,19 +4,19 @@ import _ from 'lodash';
 const Field = ({ updateSelectedPlayer, updatePlayerBalance, players }) => {
   let fields = _.map(players, (player, index) => {
   return (
-    <div key={index}>
-      <p>{_.startCase(player.name)}</p>
-      <p>player balance is {player.balance}</p>
+    <li className="player" key={index}>
+      <p>Player: {_.startCase(player.name)}</p>
+      <p>Balance: ₹{player.balance}</p>
       <input type="number" onChange={(e) => updateSelectedPlayer(parseInt(e.target.value), index)} value={player.amtValue} />
-      <button onClick={() => updatePlayerBalance('profit', index)}>Profit</button>
-      <button onClick={() => updatePlayerBalance('loss', index)}>Loss</button>
-    </div>
+      <div className="button profit" onClick={() => updatePlayerBalance('profit', index)}>Profit</div>
+      <div className="button loss" onClick={() => updatePlayerBalance('loss', index)}>Loss</div>
+    </li>
     )
   })
   return (
-    <div>
+    <ul className="player-container">
       {fields}
-    </div>
+    </ul>
   )
 }
 

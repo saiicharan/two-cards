@@ -46,7 +46,7 @@ class App extends Component {
   }
 
   updatePlayer() {
-    let players = _.union(this.state.players, [{id: Date.now(), name: this.state.name, amtValue: 0}]);
+    let players = _.union(this.state.players, [{id: Date.now(), name: this.state.name, amtValue: 0, balance: 0}]);
     this.setState({ name: "", players }, this.initializeBankBalance);
   }
 
@@ -85,16 +85,21 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h2>Two Cards</h2>
         </div>
-        <div>
-        <label htmlFor="player-name"> Add a player</label>
-        <input type="text" value={this.state.name} id="player-name" onChange={this.updateName} onKeyPress={this.handleKeyPress}/>
-        <button onClick={this.addPlayer}> Add </button>
+        <div className="App-info">
+          <div className="App-info-1">
+            <label htmlFor="player-name"> Add a player
+              <input type="text" value={this.state.name} id="player-name" onChange={this.updateName} onKeyPress={this.handleKeyPress}/>
+            </label>
+            <div className="button" onClick={this.addPlayer}> Add </div>
+          </div>
+          <div className="App-info-2">
+            <label htmlFor="base-amt"> Enter the base amount (₹)</label>
+            <input type="number" id="base-amt" onChange={this.onBaseAmtChange} />
+          </div>
+          <div className="App-info-3">
+            Current Bank balance: ₹{this.state.bankBalance}
+          </div>
         </div>
-        <div>
-        <label htmlFor="base-amt"> Enter the base amount</label>
-        <input type="number" id="base-amt" onChange={this.onBaseAmtChange} />
-        </div>
-        <p>Current Bank balance: {this.state.bankBalance}</p>
         <Field players={this.state.players}
                updatePlayerBalance={this.updatePlayerBalance}
                updateSelectedPlayer={this.updateSelectedPlayer} />
